@@ -22,6 +22,8 @@ public class ${CLASSNAME} implements javax.swing.Icon {
     /** The rendered image. */
     private BufferedImage image;
 
+	private double scaleFactor;
+
     /**
      * Creates a new transcoded SVG image.
      */
@@ -47,20 +49,36 @@ public class ${CLASSNAME} implements javax.swing.Icon {
         return width;
     }
 
+	private int getRealWidth(){
+	       return Double.valueOf(Integer.valueOf(width).doubleValue() * scaleFactor).intValue();
+    }
+
+    private int getRealHeight(){
+        return Double.valueOf(Integer.valueOf(height).doubleValue() * scaleFactor).intValue();
+    }
+
+    private static double getScaleFactor() {
+        final GraphicsConfiguration gfxConfig = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().getDefaultConfiguration();
+        final AffineTransform transform = gfxConfig.getDefaultTransform();
+        return transform.getScaleX();
+    }
+
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
         if (image == null) {
-            image = new BufferedImage(getIconWidth(), getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+
+            image = new BufferedImage(getRealWidth(), getRealHeight(), BufferedImage.TYPE_INT_ARGB);
             double coef = Math.min((double) width / (double) ${WIDTH}, (double) height / (double) ${HEIGHT});
-            
+
             Graphics2D g2d = image.createGraphics();
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.scale(coef, coef);
+            g2d.scale(coef * scaleFactor, coef * scaleFactor);
             paint(g2d);
             g2d.dispose();
         }
-        
-        g.drawImage(image, x, y, null);
+
+        g.drawImage(image, x, y, getIconWidth(), getIconHeight(), null);
+
     }
 
     /**
